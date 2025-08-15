@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勇者の冒険 - 簡易RPG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&family=Chela+One&display=swap');
+        
+        body {
+            font-family: 'Chela One', cursive;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 20, 120, 0.8) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(20, 120, 120, 0.8) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 120, 20, 0.8) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 25%, #0a1a0a 50%, #1a1a0a 75%, #0a0a1a 100%);
+            color: #e6d3a3;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            animation: mysticalBackground 20s ease-in-out infinite;
+        }
+        
+        @keyframes mysticalBackground {
+            0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+            25% { filter: hue-rotate(90deg) brightness(1.2); }
+            50% { filter: hue-rotate(180deg) brightness(0.8); }
+            75% { filter: hue-rotate(270deg) brightness(1.1); }
+        }
+        
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: 
+                linear-gradient(45deg, rgba(20, 10, 30, 0.95) 0%, rgba(30, 10, 20, 0.95) 100%),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><g fill-opacity="0.1"><polygon fill="%23666" points="36,1 26,10 16,1 16,15 26,24 36,15"/><polygon fill="%23999" points="16,17 26,26 36,17 36,31 26,40 16,31"/></g></svg>');
+            border: 3px solid transparent;
+            border-image: linear-gradient(45deg, #8b4513, #daa520, #8b4513) 1;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 0 30px rgba(218, 165, 32, 0.3),
+                inset 0 0 30px rgba(139, 69, 19, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(218, 165, 32, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(139, 69, 19, 0.1) 0%, transparent 20%);
+            pointer-events: none;
+            animation: mysticalGlow 8s ease-in-out infinite alternate;
+        }
+        
+        @keyframes mysticalGlow {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+        
+        .title {
+            text-align: center;
+            font-family: 'Nosifer', cursive;
+            font-size: 3.5em;
+            margin-bottom: 25px;
+            text-shadow: 
+                0 0 10px #daa520,
+                0 0 20px #daa520,
+                0 0 30px #b8860b,
+                0 0 40px #b8860b;
+            background: linear-gradient(45deg, #ffd700, #daa520, #cd853f, #daa520, #ffd700);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: mysticalTitle 3s ease-in-out infinite;
+        }
+        
+        @keyframes mysticalTitle {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .status-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: 
+                linear-gradient(135deg, rgba(139, 69, 19, 0.3) 0%, rgba(160, 82, 45, 0.3) 100%);
+            border: 2px solid rgba(218, 165, 32, 0.5);
+            border-radius: 15px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .player-stats, .game-info {
+            background: 
+                linear-gradient(145deg, rgba(20, 10, 30, 0.8) 0%, rgba(40, 20, 30, 0.8) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.4),
+                inset 0 1px 3px rgba(218, 165, 32, 0.2);
+        }
+        
+        .message-box {
+            background: 
+                linear-gradient(145deg, rgba(10, 5, 15, 0.9) 0%, rgba(25, 10, 20, 0.9) 100%);
+            border: 3px solid rgba(139, 69, 19, 0.6);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            min-height: 180px;
+            max-height: 350px;
+            overflow-y: auto;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 0, 0, 0.6),
+                0 0 15px rgba(218, 165, 32, 0.2);
+            font-size: 18px;
+            line-height: 1.6;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        .message-box::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        .message-box::-webkit-scrollbar-track {
+            background: rgba(139, 69, 19, 0.3);
+            border-radius: 6px;
+        }
+        
+        .message-box::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #8b4513, #daa520);
+            border-radius: 6px;
+        }
+        
+        .commands {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .command-btn {
+            background: linear-gradient(145deg, 
+                rgba(139, 69, 19, 0.8) 0%, 
+                rgba(160, 82, 45, 0.8) 50%, 
+                rgba(139, 69, 19, 0.8) 100%);
+            border: 2px solid rgba(218, 165, 32, 0.6);
+            color: #e6d3a3;
+            padding: 18px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Chela One', cursive;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 6px 15px rgba(0, 0, 0, 0.4),
+                inset 0 1px 3px rgba(218, 165, 32, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .command-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(218, 165, 32, 0.2), transparent);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+        
+        .command-btn:hover {
+            background: linear-gradient(145deg, 
+                rgba(160, 82, 45, 0.9) 0%, 
+                rgba(218, 165, 32, 0.9) 50%, 
+                rgba(160, 82, 45, 0.9) 100%);
+            transform: translateY(-3px);
+            box-shadow: 
+                0 10px 25px rgba(218, 165, 32, 0.3),
+                inset 0 1px 5px rgba(255, 215, 0, 0.4);
+            border-color: rgba(255, 215, 0, 0.8);
+        }
+        
+        .command-btn:hover::before {
+            opacity: 1;
+            animation: shimmer 0.6s ease-in-out;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: rotate(45deg) translateX(-100%); }
+            100% { transform: rotate(45deg) translateX(100%); }
+        }
+        
+        .command-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .command-btn:disabled {
+            background: linear-gradient(145deg, rgba(60, 60, 60, 0.6), rgba(40, 40, 40, 0.6));
+            border-color: rgba(100, 100, 100, 0.4);
+            color: rgba(150, 150, 150, 0.6);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .hp-bar, .exp-bar {
+            background: 
+                linear-gradient(90deg, rgba(20, 0, 0, 0.8) 0%, rgba(40, 0, 0, 0.8) 100%);
+            border: 2px solid rgba(139, 69, 19, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 8px 0;
+            height: 24px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+        }
+        
+        .hp-fill {
+            background: linear-gradient(90deg, 
+                #8b0000 0%, 
+                #dc143c 25%, 
+                #ff4500 50%, 
+                #dc143c 75%, 
+                #8b0000 100%);
+            height: 100%;
+            transition: width 0.8s ease;
+            box-shadow: 
+                0 0 10px rgba(220, 20, 60, 0.6),
+                inset 0 1px 3px rgba(255, 255, 255, 0.3);
+            animation: pulseHp 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulseHp {
+            0% { box-shadow: 0 0 5px rgba(220, 20, 60, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.3); }
+            100% { box-shadow: 0 0 15px rgba(220, 20, 60, 0.8), inset 0 1px 3px rgba(255, 255, 255, 0.5); }
+        }
+        
+        .exp-fill {
+            background: linear-gradient(90deg, 
+                #228b22 0%, 
+                #32cd32 25%, 
+                #7fff00 50%, 
+                #32cd32 75%, 
+                #228b22 100%);
+            height: 100%;
+            transition: width 0.8s ease;
+            box-shadow: 
+                0 0 10px rgba(50, 205, 50, 0.6),
+                inset 0 1px 3px rgba(255, 255, 255, 0.3);
+            animation: pulseExp 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulseExp {
+            0% { box-shadow: 0 0 5px rgba(50, 205, 50, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.3); }
+            100% { box-shadow: 0 0 15px rgba(50, 205, 50, 0.8), inset 0 1px 3px rgba(255, 255, 255, 0.5); }
+        }
+        
+        .location {
+            font-family: 'Creepster', cursive;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 
+                0 0 5px #daa520,
+                0 0 10px #b8860b,
+                2px 2px 4px rgba(0, 0, 0, 0.8);
+            animation: locationGlow 4s ease-in-out infinite alternate;
+        }
+        
+        @keyframes locationGlow {
+            0% { color: #ffd700; text-shadow: 0 0 5px #daa520, 0 0 10px #b8860b, 2px 2px 4px rgba(0, 0, 0, 0.8); }
+            100% { color: #ffff00; text-shadow: 0 0 8px #ffd700, 0 0 15px #daa520, 2px 2px 4px rgba(0, 0, 0, 0.8); }
+        }
+        
+        h3 {
+            color: #daa520;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(218, 165, 32, 0.5);
+            padding-bottom: 8px;
+        }
+        
+        #inventory {
+            background: rgba(10, 5, 15, 0.6);
+            border: 1px solid rgba(139, 69, 19, 0.4);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">勇者の冒険</h1>
+        
+        <div class="status-panel">
+            <div class="player-stats">
+                <h3>プレイヤー情報</h3>
+                <div>名前: <span id="player-name">勇者</span></div>
+                <div>レベル: <span id="player-level">1</span></div>
+                <div>HP: <span id="player-hp">30</span>/<span id="player-max-hp">30</span></div>
+                <div class="hp-bar"><div class="hp-fill" id="hp-fill" style="width: 100%;"></div></div>
+                <div>攻撃力: <span id="player-attack">10</span></div>
+                <div>EXP: <span id="player-exp">0</span>/<span id="exp-needed">100</span></div>
+                <div class="exp-bar"><div class="exp-fill" id="exp-fill" style="width: 0%;"></div></div>
+                <div>所持金: <span id="player-gold">50</span>G</div>
+            </div>
+            
+            <div class="game-info">
+                <h3>現在地</h3>
+                <div class="location" id="current-location">村</div>
+                <div style="margin-top: 15px;">
+                    <strong>持ち物:</strong>
+                    <div id="inventory">なし</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="message-box" id="message-box">
+            ようこそ、勇者よ！<br>
+            あなたは平和な村に住む若者です。<br>
+            ある日、邪悪な魔王が現れ、世界に闇をもたらしました。<br>
+            村の長老があなたに魔王討伐を依頼してきました。<br>
+            さあ、冒険を始めましょう！
+        </div>
+
+        <div class="commands" id="commands">
+            <button class="command-btn" onclick="explore()">探索する</button>
+            <button class="command-btn" onclick="goToWeaponShop()">武器屋</button>
+            <button class="command-btn" onclick="goToToolShop()">道具屋</button>
+            <button class="command-btn" onclick="rest()">休息する</button>
+            <button class="command-btn" onclick="checkStatus()">ステータス確認</button>
+            <button class="command-btn" onclick="saveGame()">セーブ</button>
+        </div>
+    </div>
+
+    <script>
+        // ゲーム状態
+        let gameState = {
+            player: {
+                name: "勇者",
+                level: 1,
+                hp: 30,
+                maxHp: 30,
+                attack: 10,
+                exp: 0,
+                expNeeded: 100,
+                gold: 50
+            },
+            location: "村",
+            inventory: [],
+            gamePhase: "start", // start, exploring, boss, end
+            explorationCount: 0,
+            hasKey: false,
+            bossFight: false
+        };
+
+        // 敵のデータ
+        const enemies = [
+            { name: "スライム", hp: 15, attack: 5, exp: 25, gold: 10 },
+            { name: "ゴブリン", hp: 25, attack: 8, exp: 40, gold: 20 },
+            { name: "オーク", hp: 40, attack: 12, exp: 60, gold: 30 },
+            { name: "ドラゴン", hp: 35, attack: 15, exp: 80, gold: 50 }
+        ];
+
+        const bossEnemy = { name: "魔王", hp: 100, attack: 20, exp: 200, gold: 500 };
+
+        // 武器のデータ
+        const weapons = [
+            { name: "鉄の剣", price: 100, attackBonus: 5, description: "攻撃力+5" },
+            { name: "鋼の剣", price: 200, attackBonus: 10, description: "攻撃力+10" }
+        ];
+
+        // 道具のデータ
+        const tools = [
+            { name: "体力薬", price: 50, healing: 30, description: "HP30回復" },
+            { name: "魔王城の鍵", price: 300, special: "key", description: "魔王城への鍵" }
+        ];
+
+        function updateDisplay() {
+            document.getElementById('player-name').textContent = gameState.player.name;
+            document.getElementById('player-level').textContent = gameState.player.level;
+            document.getElementById('player-hp').textContent = gameState.player.hp;
+            document.getElementById('player-max-hp').textContent = gameState.player.maxHp;
+            document.getElementById('player-attack').textContent = gameState.player.attack;
+            document.getElementById('player-exp').textContent = gameState.player.exp;
+            document.getElementById('exp-needed').textContent = gameState.player.expNeeded;
+            document.getElementById('player-gold').textContent = gameState.player.gold;
+            document.getElementById('current-location').textContent = gameState.location;
+
+            // HP バー更新
+            const hpPercent = (gameState.player.hp / gameState.player.maxHp) * 100;
+            document.getElementById('hp-fill').style.width = hpPercent + '%';
+
+            // EXP バー更新
+            const expPercent = (gameState.player.exp / gameState.player.expNeeded) * 100;
+            document.getElementById('exp-fill').style.width = expPercent + '%';
+
+            // インベントリ更新
+            const inventoryDiv = document.getElementById('inventory');
+            if (gameState.inventory.length === 0) {
+                inventoryDiv.textContent = 'なし';
+            } else {
+                inventoryDiv.innerHTML = gameState.inventory.map(item => `<div>${item.name}</div>`).join('');
+            }
+        }
+
+        function addMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.innerHTML += '<br>' + message;
+            messageBox.scrollTop = messageBox.scrollHeight;
+        }
+
+        function setMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.innerHTML = message;
+        }
+
+        function updateCommands(commands) {
+            const commandsDiv = document.getElementById('commands');
+            commandsDiv.innerHTML = '';
+            commands.forEach(cmd => {
+                const button = document.createElement('button');
+                button.className = 'command-btn';
+                button.textContent = cmd.text;
+                button.onclick = cmd.action;
+                if (cmd.disabled) button.disabled = true;
+                commandsDiv.appendChild(button);
+            });
+        }
+
+        // セーブ・ロード機能
+        function saveGame() {
+            const saveData = JSON.stringify(gameState);
+            localStorage.setItem('rpgSaveData', saveData);
+            setMessage("ゲームをセーブしました！");
+            updateCommands(getMainMenuCommands());
+            updateDisplay();
+        }
+
+        function loadGame() {
+            const saveData = localStorage.getItem('rpgSaveData');
+            if (saveData) {
+                gameState = JSON.parse(saveData);
+                setMessage("ゲームをロードしました！");
+                updateCommands(getMainMenuCommands());
+                updateDisplay();
+                return true;
+            }
+            return false;
+        }
+
+        function hasSaveData() {
+            return localStorage.getItem('rpgSaveData') !== null;
+        }
+
+        function getMainMenuCommands() {
+            return [
+                { text: "探索する", action: explore },
+                { text: "武器屋", action: goToWeaponShop },
+                { text: "道具屋", action: goToToolShop },
+                { text: "休息する", action: rest },
+                { text: "ステータス確認", action: checkStatus },
+                { text: "セーブ", action: saveGame }
+            ];
+        }
+
+        function explore() {
+            gameState.location = "森";
+            gameState.explorationCount++;
+            
+            if (gameState.explorationCount >= 5 && gameState.hasKey) {
+                setMessage("森の奥で巨大な城を発見しました！<br>これが魔王城のようです...<br>鍵を使って中に入りますか？");
+                updateCommands([
+                    { text: "魔王城に入る", action: enterBossArea },
+                    { text: "村に戻る", action: returnToVillage }
+                ]);
+                return;
+            }
+
+            const random = Math.random();
+            if (random < 0.7) {
+                // 戦闘
+                const enemy = enemies[Math.floor(Math.random() * enemies.length)];
+                startBattle(enemy);
+            } else if (random < 0.9) {
+                // アイテム発見
+                const goldFound = Math.floor(Math.random() * 30) + 10;
+                gameState.player.gold += goldFound;
+                setMessage(`森を探索中...<br><br>宝箱を発見しました！<br>${goldFound}Gを手に入れました！`);
+                updateCommands([
+                    { text: "探索を続ける", action: explore },
+                    { text: "村に戻る", action: returnToVillage }
+                ]);
+            } else {
+                // 何も起こらない
+                setMessage("森を探索しましたが、何も見つかりませんでした。");
+                updateCommands([
+                    { text: "探索を続ける", action: explore },
+                    { text: "村に戻る", action: returnToVillage }
+                ]);
+            }
+            updateDisplay();
+        }
+
+        function startBattle(enemy) {
+            gameState.currentEnemy = { ...enemy };
+            setMessage(`${enemy.name}が現れた！<br><br>${enemy.name} HP: ${enemy.hp}<br>勇者 HP: ${gameState.player.hp}`);
+            updateCommands([
+                { text: "攻撃", action: playerAttack },
+                { text: "逃げる", action: runAway }
+            ]);
+        }
+
+        function playerAttack() {
+            const damage = gameState.player.attack + Math.floor(Math.random() * 5);
+            gameState.currentEnemy.hp -= damage;
+            
+            let message = `勇者の攻撃！<br>${gameState.currentEnemy.name}に${damage}のダメージ！<br><br>`;
+            
+            if (gameState.currentEnemy.hp <= 0) {
+                // 敵を倒した
+                gameState.player.exp += gameState.currentEnemy.exp;
+                gameState.player.gold += gameState.currentEnemy.gold;
+                message += `${gameState.currentEnemy.name}を倒した！<br>`;
+                message += `${gameState.currentEnemy.exp}EXP、${gameState.currentEnemy.gold}Gを獲得！`;
+                
+                checkLevelUp();
+                
+                updateCommands([
+                    { text: "探索を続ける", action: explore },
+                    { text: "村に戻る", action: returnToVillage }
+                ]);
+            } else {
+                // 敵の攻撃
+                const enemyDamage = gameState.currentEnemy.attack + Math.floor(Math.random() * 3);
+                gameState.player.hp -= enemyDamage;
+                message += `${gameState.currentEnemy.name}の攻撃！<br>勇者に${enemyDamage}のダメージ！<br><br>`;
+                message += `${gameState.currentEnemy.name} HP: ${gameState.currentEnemy.hp}<br>勇者 HP: ${gameState.player.hp}`;
+                
+                if (gameState.player.hp <= 0) {
+                    gameOver();
+                    return;
+                }
+                
+                updateCommands([
+                    { text: "攻撃", action: playerAttack },
+                    { text: "逃げる", action: runAway }
+                ]);
+            }
+            
+            setMessage(message);
+            updateDisplay();
+        }
+
+        function runAway() {
+            setMessage("勇者は逃げ出した！");
+            updateCommands([
+                { text: "探索を続ける", action: explore },
+                { text: "村に戻る", action: returnToVillage }
+            ]);
+        }
+
+        function checkLevelUp() {
+            if (gameState.player.exp >= gameState.player.expNeeded) {
+                gameState.player.level++;
+                gameState.player.exp -= gameState.player.expNeeded;
+                gameState.player.expNeeded = Math.floor(gameState.player.expNeeded * 1.5);
+                gameState.player.maxHp += 10;
+                gameState.player.hp = gameState.player.maxHp; // レベルアップで全回復
+                gameState.player.attack += 3;
+                
+                addMessage(`<br><br>レベルアップ！<br>レベル${gameState.player.level}になりました！<br>HP+10、攻撃力+3、HP全回復！`);
+            }
+        }
+
+        function goToWeaponShop() {
+            gameState.location = "武器屋";
+            let message = "武器屋にやってきました。<br><br>「いらっしゃい、勇者よ！強力な武器をお求めですか？」<br><br>";
+            message += "商品一覧:<br>";
+            weapons.forEach((item, index) => {
+                const canAfford = gameState.player.gold >= item.price;
+                const alreadyOwned = gameState.inventory.some(inv => inv.name === item.name);
+                message += `${index + 1}. ${item.name} - ${item.price}G (${item.description})`;
+                if (alreadyOwned) message += " [所持済み]";
+                if (!canAfford) message += " [所持金不足]";
+                message += "<br>";
+            });
+            
+            setMessage(message);
+            
+            const commands = [
+                { text: "村に戻る", action: returnToVillage }
+            ];
+            
+            weapons.forEach((item, index) => {
+                const canAfford = gameState.player.gold >= item.price;
+                const alreadyOwned = gameState.inventory.some(inv => inv.name === item.name);
+                commands.unshift({
+                    text: `${item.name}を買う`,
+                    action: () => buyWeapon(index),
+                    disabled: !canAfford || alreadyOwned
+                });
+            });
+            
+            updateCommands(commands);
+            updateDisplay();
+        }
+
+        function goToToolShop() {
+            gameState.location = "道具屋";
+            let message = "道具屋にやってきました。<br><br>「いらっしゃいませ！冒険に役立つ道具を取り揃えております！」<br><br>";
+            message += "商品一覧:<br>";
+            tools.forEach((item, index) => {
+                const canAfford = gameState.player.gold >= item.price;
+                const alreadyOwned = gameState.inventory.some(inv => inv.name === item.name);
+                message += `${index + 1}. ${item.name} - ${item.price}G (${item.description})`;
+                if (alreadyOwned) message += " [所持済み]";
+                if (!canAfford) message += " [所持金不足]";
+                message += "<br>";
+            });
+            
+            setMessage(message);
+            
+            const commands = [
+                { text: "村に戻る", action: returnToVillage }
+            ];
+            
+            tools.forEach((item, index) => {
+                const canAfford = gameState.player.gold >= item.price;
+                const alreadyOwned = gameState.inventory.some(inv => inv.name === item.name);
+                commands.unshift({
+                    text: `${item.name}を買う`,
+                    action: () => buyTool(index),
+                    disabled: !canAfford || alreadyOwned
+                });
+            });
+            
+            updateCommands(commands);
+            updateDisplay();
+        }
+
+        function buyWeapon(itemIndex) {
+            const item = weapons[itemIndex];
+            gameState.player.gold -= item.price;
+            gameState.inventory.push({ ...item });
+            
+            if (item.attackBonus) {
+                gameState.player.attack += item.attackBonus;
+            }
+            
+            setMessage(`${item.name}を購入しました！<br><br>${item.description}`);
+            updateCommands([
+                { text: "他の商品を見る", action: goToWeaponShop },
+                { text: "村に戻る", action: returnToVillage }
+            ]);
+            updateDisplay();
+        }
+
+        function buyTool(itemIndex) {
+            const item = tools[itemIndex];
+            gameState.player.gold -= item.price;
+            gameState.inventory.push({ ...item });
+            
+            if (item.special === "key") {
+                gameState.hasKey = true;
+            }
+            
+            setMessage(`${item.name}を購入しました！<br><br>${item.description}`);
+            updateCommands([
+                { text: "他の商品を見る", action: goToToolShop },
+                { text: "村に戻る", action: returnToVillage }
+            ]);
+            updateDisplay();
+        }
+
+        function rest() {
+            gameState.player.hp = gameState.player.maxHp;
+            setMessage("宿屋で休息を取りました。<br>HPが全回復しました！");
+            updateCommands(getMainMenuCommands());
+            updateDisplay();
+        }
+
+        function checkStatus() {
+            let message = "=== ステータス ===<br>";
+            message += `名前: ${gameState.player.name}<br>`;
+            message += `レベル: ${gameState.player.level}<br>`;
+            message += `HP: ${gameState.player.hp}/${gameState.player.maxHp}<br>`;
+            message += `攻撃力: ${gameState.player.attack}<br>`;
+            message += `経験値: ${gameState.player.exp}/${gameState.player.expNeeded}<br>`;
+            message += `所持金: ${gameState.player.gold}G<br><br>`;
+            
+            if (gameState.inventory.length > 0) {
+                message += "=== 持ち物 ===<br>";
+                gameState.inventory.forEach(item => {
+                    message += `${item.name} (${item.description})<br>`;
+                });
+            }
+            
+            setMessage(message);
+            updateCommands(getMainMenuCommands());
+        }
+
+        function returnToVillage() {
+            gameState.location = "村";
+            setMessage("村に戻りました。<br><br>平和な村の雰囲気に心が落ち着きます。");
+            updateCommands(getMainMenuCommands());
+            updateDisplay();
+        }
+
+        function enterBossArea() {
+            gameState.location = "魔王城";
+            setMessage("魔王城の重い扉を開けて中に入りました...<br><br>暗く不気味な廊下を進むと、巨大な玉座の間に出ました。<br>そこには恐ろしい魔王が座っています！<br><br>「よくここまで来たな、勇者よ...だが、ここで終わりだ！」");
+            updateCommands([
+                { text: "魔王と戦う", action: startBossBattle }
+            ]);
+            updateDisplay();
+        }
+
+        function startBossBattle() {
+            gameState.currentEnemy = { ...bossEnemy };
+            gameState.bossFight = true;
+            setMessage(`最終決戦！<br>${bossEnemy.name}との戦いが始まった！<br><br>${bossEnemy.name} HP: ${bossEnemy.hp}<br>勇者 HP: ${gameState.player.hp}`);
+            updateCommands([
+                { text: "攻撃", action: bossAttack },
+                { text: "体力薬を使う", action: usePotion, disabled: !gameState.inventory.some(item => item.healing) }
+            ]);
+        }
+
+        function bossAttack() {
+            const damage = gameState.player.attack + Math.floor(Math.random() * 8);
+            gameState.currentEnemy.hp -= damage;
+            
+            let message = `勇者の攻撃！<br>魔王に${damage}のダメージ！<br><br>`;
+            
+            if (gameState.currentEnemy.hp <= 0) {
+                // 魔王を倒した - ゲームクリア
+                message += "魔王を倒した！<br><br>";
+                message += "「うぐあああ...まさか、この私が...」<br><br>";
+                message += "魔王は光となって消え去りました。<br>";
+                message += "世界に平和が戻りました！<br><br>";
+                message += "おめでとうございます！ゲームクリアです！";
+                
+                updateCommands([
+                    { text: "最初から遊ぶ", action: resetGame }
+                ]);
+            } else {
+                // 魔王の攻撃
+                const enemyDamage = gameState.currentEnemy.attack + Math.floor(Math.random() * 5);
+                gameState.player.hp -= enemyDamage;
+                message += `魔王の攻撃！<br>勇者に${enemyDamage}のダメージ！<br><br>`;
+                message += `魔王 HP: ${gameState.currentEnemy.hp}<br>勇者 HP: ${gameState.player.hp}`;
+                
+                if (gameState.player.hp <= 0) {
+                    gameOver();
+                    return;
+                }
+                
+                updateCommands([
+                    { text: "攻撃", action: bossAttack },
+                    { text: "体力薬を使う", action: usePotion, disabled: !gameState.inventory.some(item => item.healing) }
+                ]);
+            }
+            
+            setMessage(message);
+            updateDisplay();
+        }
+
+        function usePotion() {
+            const potionIndex = gameState.inventory.findIndex(item => item.healing);
+            if (potionIndex !== -1) {
+                const potion = gameState.inventory[potionIndex];
+                gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + potion.healing);
+                gameState.inventory.splice(potionIndex, 1);
+                
+                addMessage(`<br>${potion.name}を使用！HP${potion.healing}回復！`);
+                updateDisplay();
+            }
+        }
+
+        function gameOver() {
+            setMessage("勇者は力尽きてしまいました...<br><br>GAME OVER<br><br>もう一度チャレンジしますか？");
+            const commands = [
+                { text: "最初から遊ぶ", action: resetGame }
+            ];
+            if (hasSaveData()) {
+                commands.unshift({ text: "セーブデータから再開", action: loadGame });
+            }
+            updateCommands(commands);
+        }
+
+        function resetGame() {
+            gameState = {
+                player: {
+                    name: "勇者",
+                    level: 1,
+                    hp: 30,
+                    maxHp: 30,
+                    attack: 10,
+                    exp: 0,
+                    expNeeded: 100,
+                    gold: 50
+                },
+                location: "村",
+                inventory: [],
+                gamePhase: "start",
+                explorationCount: 0,
+                hasKey: false,
+                bossFight: false
+            };
+            
+            setMessage("ようこそ、勇者よ！<br>あなたは平和な村に住む若者です。<br>ある日、邪悪な魔王が現れ、世界に闇をもたらしました。<br>村の長老があなたに魔王討伐を依頼してきました。<br>さあ、冒険を始めましょう！");
+            
+            updateCommands(getMainMenuCommands());
+            updateDisplay();
+        }
+
+        // 初期化
+        window.onload = function() {
+            updateDisplay();
+            if (hasSaveData()) {
+                setMessage("ようこそ、勇者よ！<br><br>セーブデータが見つかりました。<br>続きから遊びますか？");
+                updateCommands([
+                    { text: "続きから遊ぶ", action: loadGame },
+                    { text: "最初から遊ぶ", action: resetGame }
+                ]);
+            }
+        };
+    </script>
+</body>
+</html>
